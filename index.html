@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Talking Tom - Web Edition</title>
+    <style>
+        :root {
+            --bg-color: #a8e6cf;
+            --tom-color: #808080;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            border: 10px solid #333;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        /* Status Bars */
+        .status-container {
+            width: 90%;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .bar-wrapper {
+            width: 80px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .bar-bg {
+            width: 100%;
+            height: 15px;
+            background: #eee;
+            border-radius: 10px;
+            border: 2px solid #333;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.3s;
+        }
+
+        #hunger-fill { background: #ff6b6b; }
+        #energy-fill { background: #ffd93d; }
+        #mood-fill { background: #6bc1ff; }
+
+        /* Tom Character Appearance */
+        #tom-wrapper {
+            position: relative;
+            margin-top: 50px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #tom-wrapper:active { transform: scale(0.95); }
+
+        .tom-body {
+            width: 200px;
+            height: 250px;
+            background: var(--tom-color);
+            border-radius: 100px 100px 80px 80px;
+            position: relative;
+            border: 4px solid #444;
+        }
+
+        .ear {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: var(--tom-color);
+            border: 4px solid #444;
+            top: -20px;
+            border-radius: 50% 50% 0 0;
+            z-index: -1;
+        }
+
+        .ear.left { left: 10px; transform: rotate(-20deg); }
+        .ear.right { right: 10px; transform: rotate(20deg); }
+
+        .eye {
+            position: absolute;
+            width: 50px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            top: 50px;
+            border: 2px solid #333;
+        }
+
+        .eye.left { left: 35px; }
+        .eye.right { right: 35px; }
+
+        .pupil {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #333;
+            border-radius: 50%;
+            top: 20px;
+            left: 15px;
+        }
+
+        .nose {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background: #ff9999;
+            border-radius: 50%;
+            top: 110px;
+            left: 85px;
+        }
+
+        .mouth {
+            position: absolute;
+            width: 60px;
+            height: 30px;
+            border: 4px solid #333;
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+            top: 140px;
+            left: 70px;
+            transition: 0.3s;
+        }
+
+        /* UI Buttons */
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            box-shadow: 0 5px 0 #ccc;
+            cursor: pointer;
+            font-size: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.1s;
+        }
+
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        /* Dark Mode for Sleeping */
+        .dark-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 50, 0.7);
+            border-radius: 20px;
+            display: none;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="status-container">
+        <div class="bar-wrapper">LAPAR<div class="bar-bg"><div id="hunger-fill" class="bar-fill"></div></div></div>
+        <div class="bar-wrapper">ENERGI<div class="bar-bg"><div id="energy-fill" class="bar-fill"></div></div></div>
+        <div class="bar-wrapper">MOOD<div class="bar-bg"><div id="mood-fill" class="bar-fill"></div></div></div>
+    </div>
+
+    <div id="tom-wrapper" onclick="petTom()">
+        <div class="ear left"></div>
+        <div class="ear right"></div>
+        <div class="tom-body">
+            <div class="eye left"><div class="pupil"></div></div>
+            <div class="eye right"><div class="pupil"></div></div>
+            <div class="nose"></div>
+            <div id="mouth" class="mouth"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="feedTom()">🍖</button>
+        <button class="btn" onclick="toggleSleep()">💡</button>
+        <button class="btn" onclick="playGame()">⚽</button>
+    </div>
+
+    <div id="overlay" class="dark-overlay"></div>
+</div>
+
+<script>
+    let hunger = 100;
+    let energy = 100;
+    let mood = 100;
+    let isSleeping = false;
+
+    const mouth = document.getElementById('mouth');
+    const overlay = document.getElementById('overlay');
+
+    function updateBars() {
+        document.getElementById('hunger-fill').style.width = hunger + '%';
+        document.getElementById('energy-fill').style.width = energy + '%';
+        document.getElementById('mood-fill').style.width = mood + '%';
+
+        // Logika ekspresi wajah
+        if (hunger < 30 || energy < 30 || mood < 30) {
+            mouth.style.borderRadius = "30px 30px 0 0"; // Sedih
+            mouth.style.height = "15px";
+            mouth.style.top = "150px";
+        } else {
+            mouth.style.borderRadius = "0 0 30px 30px"; // Bahagia
+            mouth.style.height = "30px";
+            mouth.style.top = "140px";
+        }
+    }
+
+    // Penurunan status berkala
+    setInterval(() => {
+        if (!isSleeping) {
+            hunger = Math.max(0, hunger - 0.5);
+            energy = Math.max(0, energy - 0.3);
+            mood = Math.max(0, mood - 0.4);
+        } else {
+            energy = Math.min(100, energy + 2);
+            hunger = Math.max(0, hunger - 0.2);
+        }
+        updateBars();
+    }, 1000);
+
+    function feedTom() {
+        if (isSleeping) return;
+        hunger = Math.min(100, hunger + 20);
+        mouth.style.transform = "scale(1.2)";
+        setTimeout(() => mouth.style.transform = "scale(1)", 200);
+        updateBars();
+    }
+
+    function toggleSleep() {
+        isSleeping = !isSleeping;
+        overlay.style.display = isSleeping ? 'block' : 'none';
+        const eyes = document.querySelectorAll('.eye');
+        eyes.forEach(eye => {
+            eye.style.height = isSleeping ? '5px' : '60px';
+        });
+    }
+
+    function petTom() {
+        if (isSleeping) return;
+        mood = Math.min(100, mood + 10);
+        updateBars();
+        // Animasi lompat kecil
+        document.getElementById('tom-wrapper').style.transform = "translateY(-20px)";
+        setTimeout(() => {
+            document.getElementById('tom-wrapper').style.transform = "translateY(0)";
+        }, 100);
+    }
+
+    function playGame() {
+        if (isSleeping) return;
+        if (energy > 20) {
+            mood = Math.min(100, mood + 30);
+            energy = Math.max(0, energy - 20);
+            updateBars();
+            alert("Tom senang bermain bola! ⚽");
+        } else {
+            alert("Tom terlalu lelah untuk bermain... 😴");
+        }
+    }
+
+    updateBars();
+</script>
+
+</body>
+  </html>
